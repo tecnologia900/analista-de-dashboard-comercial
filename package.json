@@ -1,0 +1,24 @@
+{
+  "name": "gerador-de-dashboard",
+  "private": true,
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "shared",
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,web -c blue,green \"npm run dev -w server\" \"npm run dev -w web\"",
+    "build": "npm run build -w server && npm run build -w web",
+    "start": "npm run start -w server",
+    "app:dev": "node desktop/gerar-icone.mjs && npm run build && node server/esbuild.desktop.mjs && npm install --prefix desktop && node desktop/node_modules/electron/install.js && npm start --prefix desktop",
+    "app": "node desktop/gerar-icone.mjs && npm run build && node server/esbuild.desktop.mjs && npm install --prefix desktop && node desktop/node_modules/electron/install.js && npm run dist --prefix desktop",
+    "typecheck": "npm run typecheck -w server && npm run typecheck -w web"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

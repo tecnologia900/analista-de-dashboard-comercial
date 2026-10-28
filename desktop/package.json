@@ -1,0 +1,52 @@
+{
+  "name": "painel-do-gerente",
+  "productName": "Painel do Gerente",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Dashboards comerciais a partir das planilhas do ERP. Roda só nesta máquina.",
+  "author": "Painel do Gerente",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable --x64"
+  },
+  "devDependencies": {
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.painelgerente.app",
+    "productName": "Painel do Gerente",
+    "asar": true,
+    "npmRebuild": false,
+    "directories": {
+      "output": "../release"
+    },
+    "files": [
+      "main.cjs"
+    ],
+    "extraResources": [
+      {
+        "from": "../server/dist/app.mjs",
+        "to": "server/app.mjs"
+      },
+      {
+        "from": "../web/dist",
+        "to": "web"
+      }
+    ],
+    "win": {
+      "icon": "icone.png",
+      "signAndEditExecutable": false,
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "Painel do Gerente.exe"
+    }
+  }
+}
