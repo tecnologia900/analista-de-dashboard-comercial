@@ -164,6 +164,14 @@ export const OBJETIVOS: DefObjetivo[] = [
     rota: '/vendedores',
   },
   {
+    id: 'reuniao',
+    titulo: 'Reunião com o vendedor',
+    pergunta: 'O que falar com ele hoje?',
+    detalhe: 'Valor, meta, clientes e o comparativo com o 1º lugar e com a média, para a conversa de feedback.',
+    relatorios: ['ranking', 'vendas', 'carteira'],
+    rota: '/reuniao',
+  },
+  {
     id: 'vendas',
     titulo: 'Visão geral de vendas',
     pergunta: 'Como o período está andando?',

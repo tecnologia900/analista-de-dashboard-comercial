@@ -291,9 +291,12 @@ export function opcaoDonut(
   itens: { nome: string; valor: number; cor?: string }[],
   formato: (n: number) => string,
   destaque?: string | null,
+  centro?: { valor: string; legenda: string } | null,
 ): EChartsOption {
   const c = paleta(escuro);
   const muitos = itens.length > 6;
+  const centroPizza = muitos ? ['34%', '50%'] : ['50%', '46%'];
+  const margem = { top: 8, bottom: muitos ? 8 : 36, right: muitos ? 148 : 0 };
   return {
     backgroundColor: 'transparent',
     tooltip: {
@@ -329,10 +332,8 @@ export function opcaoDonut(
       {
         type: 'pie',
         radius: muitos ? ['46%', '72%'] : ['46%', '68%'],
-        center: muitos ? ['34%', '50%'] : ['50%', '46%'],
-        top: 8,
-        bottom: muitos ? 8 : 36,
-        right: muitos ? 148 : 0,
+        center: centroPizza,
+        ...margem,
         cursor: 'pointer',
         avoidLabelOverlap: true,
         data: itens.map((item, i) => ({
@@ -346,6 +347,30 @@ export function opcaoDonut(
         label: { show: !muitos, color: c.ink, formatter: '{b}\n{d}%' },
         labelLine: { show: !muitos, length: 8, length2: 6 },
       },
+      ...(centro
+        ? [
+            {
+              type: 'pie' as const,
+              radius: ['0%', '42%'],
+              center: centroPizza,
+              ...margem,
+              silent: true,
+              animation: false,
+              tooltip: { show: false },
+              labelLine: { show: false },
+              label: {
+                show: true,
+                position: 'center' as const,
+                formatter: `{valor|${centro.valor}}\n{legenda|${centro.legenda}}`,
+                rich: {
+                  valor: { fontSize: 26, fontWeight: 700, color: c.ink, lineHeight: 30, align: 'center' as const, fontFamily: 'Segoe UI, sans-serif' },
+                  legenda: { fontSize: 12, color: c.muted, lineHeight: 16, align: 'center' as const, fontFamily: 'Segoe UI, sans-serif' },
+                },
+              },
+              data: [{ value: 1, name: '', itemStyle: { color: 'transparent' } }],
+            },
+          ]
+        : []),
     ],
   };
 }

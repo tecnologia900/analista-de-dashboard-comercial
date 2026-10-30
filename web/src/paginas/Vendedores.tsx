@@ -145,7 +145,13 @@ export function Vendedores() {
           <div className="grid gap-4 lg:grid-cols-2">
             <Bloco titulo="Condição de pagamento" insight="O clique filtra a evolução. O gráfico continua mostrando todas as condições.">
               <Grafico
-                option={opcaoDonut(escuro, view.condicoes.map((c) => ({ nome: c.condicao, valor: c.valor })), formatBRL, filtros.condicao)}
+                option={opcaoDonut(
+                  escuro,
+                  view.condicoes.map((c) => ({ nome: c.condicao, valor: c.valor })),
+                  formatBRL,
+                  filtros.condicao,
+                  view.prazoMedio == null ? null : { valor: formatNum(view.prazoMedio, 0), legenda: 'dias' },
+                )}
                 aoClicar={(nome) => alternarFiltro('condicao', nome)}
               />
             </Bloco>

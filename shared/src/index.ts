@@ -8,3 +8,4 @@ export * from './carteira.js';
 export * from './vendedores.js';
 export * from './vendas.js';
 export * from './oportunidades.js';
+export * from './reuniao.js';

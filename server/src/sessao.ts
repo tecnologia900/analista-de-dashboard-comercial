@@ -48,6 +48,17 @@ export function limparSessao(sessao: Sessao): void {
   sessao.touchedAt = Date.now();
 }
 
+export function substituirRelatorios(sessao: Sessao, relatorios: Sessao['relatorios']): void {
+  const proximo = vazios();
+  proximo.vendas = relatorios.vendas;
+  proximo.carteira = relatorios.carteira;
+  proximo.ranking = relatorios.ranking;
+  proximo.estoque = relatorios.estoque;
+  proximo.produtos = relatorios.produtos;
+  sessao.relatorios = proximo;
+  sessao.touchedAt = Date.now();
+}
+
 export function esquecerTudo(): void {
   sessoes.clear();
 }

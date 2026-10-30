@@ -1,10 +1,31 @@
 import { OBJETIVOS, RELATORIOS } from '@dash/shared';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { limparSessaoRemota } from '../api';
+import { Historico, SalvarAnalise } from '../historico';
 import { usePainel } from '../store';
 
 export function Home() {
   const tema = usePainel((s) => s.tema);
   const definirTema = usePainel((s) => s.definirTema);
+  const limpar = usePainel((s) => s.limpar);
+  const navigate = useNavigate();
+  const [iniciando, setIniciando] = useState<string | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
+
+  async function novaAnalise(id: string) {
+    if (iniciando) return;
+    setIniciando(id);
+    setErro(null);
+    try {
+      await limparSessaoRemota();
+      limpar();
+      navigate(`/carregar/${id}`);
+    } catch {
+      setErro('Não consegui abrir uma análise nova. Tente de novo.');
+      setIniciando(null);
+    }
+  }
 
   return (
     <div className="min-h-screen">
@@ -20,9 +41,19 @@ export function Home() {
         <p className="mt-3 max-w-2xl text-lg text-muted">
           Escolha o objetivo. A ferramenta pede só as planilhas daquele assunto e aponta o que fazer com o número na frente.
         </p>
+        <p className="mt-2 max-w-2xl text-sm text-muted">
+          Cada card começa uma análise nova, com as planilhas em branco. O histórico salvo neste computador continua abaixo.
+        </p>
+        {erro && <p className="erro mt-4">{erro}</p>}
         <div className="mt-8 grid gap-4 md:grid-cols-2">
           {OBJETIVOS.map((objetivo, indice) => (
-            <Link key={objetivo.id} to={`/carregar/${objetivo.id}`} className="card block p-5">
+            <button
+              key={objetivo.id}
+              type="button"
+              disabled={iniciando !== null}
+              onClick={() => void novaAnalise(objetivo.id)}
+              className="card block w-full cursor-pointer p-5 text-left disabled:cursor-default"
+            >
               <p className="text-xs font-semibold text-muted">{String(indice + 1).padStart(2, '0')}</p>
               <h2 className="mt-2 text-xl font-semibold">{objetivo.titulo}</h2>
               <p className="mt-1 text-[var(--ink)]">{objetivo.pergunta}</p>
@@ -34,9 +65,11 @@ export function Home() {
                   </span>
                 ))}
               </div>
-            </Link>
+            </button>
           ))}
         </div>
+        <Historico />
+        <SalvarAnalise completo />
         <section className="mt-10">
           <h2 className="text-xl font-semibold">O que baixar?</h2>
           <p className="mt-2 max-w-2xl text-sm text-muted">
@@ -49,7 +82,7 @@ export function Home() {
           />
         </section>
         <p className="mt-8 max-w-2xl text-sm text-muted">
-          Os arquivos ficam na memória desta sessão, por cerca de duas horas sem uso. Nada é gravado em disco, em banco ou enviado para fora.
+          A sessão aberta fica na memória por cerca de duas horas sem uso. O histórico só é gravado quando você salva, e fica numa pasta deste computador. Nada é enviado para fora.
         </p>
       </main>
     </div>

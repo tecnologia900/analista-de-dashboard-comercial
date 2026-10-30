@@ -11,6 +11,15 @@ import Fastify from 'fastify';
 import type { FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { gerarPlanilha } from './amostra.js';
+import {
+  HistoricoErro,
+  abrirPastaHistorico,
+  apagarHistorico,
+  lerHistorico,
+  listarHistorico,
+  comoPacote,
+  salvarHistorico,
+} from './historico.js';
 import { PlanilhaErro, analisarArquivo } from './parser.js';
 import {
   criarSessao,
@@ -18,6 +27,7 @@ import {
   limparSessao,
   obterSessao,
   removerRelatorio,
+  substituirRelatorios,
   type Sessao,
 } from './sessao.js';
 
@@ -36,7 +46,7 @@ export async function criarServidor() {
   const nivel = process.env.LOG_LEVEL ?? 'info';
   const app = Fastify({
     logger: nivel === 'silent' ? false : { level: nivel },
-    bodyLimit: 30 * 1024 * 1024,
+    bodyLimit: 100 * 1024 * 1024,
   });
 
   await app.register(cookie);
@@ -71,6 +81,64 @@ export async function criarServidor() {
   app.delete('/api/sessao', async (req) => {
     limparSessao(req.sessao);
     return { ok: true };
+  });
+
+  app.get('/api/historico', async (_req, reply) => {
+    try {
+      const lista = await listarHistorico();
+      return { ok: true, ...lista };
+    } catch {
+      return reply.code(500).send({ ok: false, mensagem: 'Não consegui ler o histórico neste computador.' });
+    }
+  });
+
+  app.post('/api/historico', async (req, reply) => {
+    const corpo = z.object({ dia: z.string(), relatorios: z.unknown().optional() }).safeParse(req.body);
+    if (!corpo.success) return reply.code(400).send({ ok: false, mensagem: 'Informe o dia da análise.' });
+    const relatorios = comoPacote(corpo.data.relatorios == null ? req.sessao.relatorios : corpo.data.relatorios);
+    if (!relatorios) {
+      return reply.code(400).send({ ok: false, mensagem: 'Não consegui ler os dados desta análise.' });
+    }
+    try {
+      const salvo = await salvarHistorico(corpo.data.dia, relatorios);
+      substituirRelatorios(req.sessao, relatorios);
+      return { ok: true, ...salvo };
+    } catch (erro) {
+      if (erro instanceof HistoricoErro) return reply.code(400).send({ ok: false, mensagem: erro.message });
+      return reply.code(500).send({ ok: false, mensagem: 'Não consegui gravar a análise neste computador.' });
+    }
+  });
+
+  app.post('/api/historico/pasta', async (_req, reply) => {
+    try {
+      const pasta = await abrirPastaHistorico();
+      return { ok: true, pasta };
+    } catch {
+      return reply.code(500).send({ ok: false, mensagem: 'Não consegui abrir a pasta do histórico.' });
+    }
+  });
+
+  app.post('/api/historico/:dia/abrir', async (req, reply) => {
+    const dia = (req.params as { dia: string }).dia;
+    try {
+      const gravado = await lerHistorico(dia);
+      substituirRelatorios(req.sessao, gravado.relatorios);
+      return { ok: true, dia: gravado.dia, relatorios: gravado.relatorios };
+    } catch (erro) {
+      if (erro instanceof HistoricoErro) return reply.code(404).send({ ok: false, mensagem: erro.message });
+      return reply.code(500).send({ ok: false, mensagem: 'Não consegui abrir essa análise.' });
+    }
+  });
+
+  app.delete('/api/historico/:dia', async (req, reply) => {
+    const dia = (req.params as { dia: string }).dia;
+    try {
+      await apagarHistorico(dia);
+      return { ok: true };
+    } catch (erro) {
+      if (erro instanceof HistoricoErro) return reply.code(400).send({ ok: false, mensagem: erro.message });
+      return reply.code(500).send({ ok: false, mensagem: 'Não consegui apagar essa análise.' });
+    }
   });
 
   app.delete('/api/sessao/relatorios/:tipo', async (req, reply) => {

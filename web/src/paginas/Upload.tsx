@@ -3,6 +3,7 @@ import type { TipoRelatorio } from '@dash/shared';
 import { useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { enviarArquivo } from '../api';
+import { SalvarAnalise } from '../historico';
 import { usePainel } from '../store';
 
 export function Upload() {
@@ -100,6 +101,7 @@ export function Upload() {
             }}
           />
         </label>
+        {algum && <SalvarAnalise completo />}
         <div className="mt-6 flex flex-wrap gap-3">
           {prontos && (
             <Link to={objetivo.rota} className="btn">

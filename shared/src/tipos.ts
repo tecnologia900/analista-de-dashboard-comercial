@@ -1,6 +1,6 @@
 export type TipoRelatorio = 'vendas' | 'carteira' | 'ranking' | 'estoque' | 'produtos';
 
-export type ObjetivoId = 'giro' | 'carteira' | 'vendedores' | 'vendas' | 'executivo';
+export type ObjetivoId = 'giro' | 'carteira' | 'vendedores' | 'vendas' | 'reuniao' | 'executivo';
 
 export interface CampoFiltro {
   rotulo: string;

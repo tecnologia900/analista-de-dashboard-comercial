@@ -5,7 +5,9 @@ import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import type { Resposta } from './leitura';
+import { baixarApresentacao } from './apresentacao';
 import { limparSessaoRemota } from './api';
+import { SalvarAnalise } from './historico';
 import { usePainel } from './store';
 
 export function Moldura({ titulo, children }: { titulo: string; children: ReactNode }) {
@@ -13,10 +15,13 @@ export function Moldura({ titulo, children }: { titulo: string; children: ReactN
   const relatorios = usePainel((s) => s.relatorios);
   const tema = usePainel((s) => s.tema);
   const definirTema = usePainel((s) => s.definirTema);
+  const coberturaMax = usePainel((s) => s.coberturaMax);
   const limpar = usePainel((s) => s.limpar);
   const [aberto, setAberto] = useState(false);
   const [avisoImg, setAvisoImg] = useState<string | null>(null);
+  const [gerandoPdf, setGerandoPdf] = useState(false);
   const periodos = avisosDePeriodo(relatorios);
+  const menu = [...OBJETIVOS.filter((objetivo) => objetivo.id !== 'reuniao'), ...OBJETIVOS.filter((objetivo) => objetivo.id === 'reuniao')];
 
   useEffect(() => {
     const id = location.hash.replace('#', '');
@@ -39,7 +44,24 @@ export function Moldura({ titulo, children }: { titulo: string; children: ReactN
       link.click();
       setAvisoImg(null);
     } catch {
-      setAvisoImg('Não consegui gerar a imagem. Use Exportar PDF, que abre a impressão do navegador.');
+      setAvisoImg('Não consegui gerar a imagem.');
+    }
+  }
+
+  async function pdf() {
+    if (gerandoPdf) return;
+    if (!Object.values(relatorios).some(Boolean)) {
+      setAvisoImg('Carregue uma análise para montar a apresentação da diretoria.');
+      return;
+    }
+    setGerandoPdf(true);
+    setAvisoImg(null);
+    try {
+      await baixarApresentacao(relatorios, coberturaMax);
+    } catch {
+      setAvisoImg('Não consegui gerar o PDF da apresentação.');
+    } finally {
+      setGerandoPdf(false);
     }
   }
 
@@ -51,7 +73,7 @@ export function Moldura({ titulo, children }: { titulo: string; children: ReactN
             <Marca />
           </Link>
           <nav className="flex flex-1 flex-col gap-1 text-sm">
-            {OBJETIVOS.map((objetivo) => {
+            {menu.map((objetivo) => {
               const prontos = objetivo.relatorios.filter((tipo) => relatorios[tipo]).length;
               const ativo = location.pathname === objetivo.rota;
               return (
@@ -67,11 +89,14 @@ export function Moldura({ titulo, children }: { titulo: string; children: ReactN
               );
             })}
           </nav>
+          <Link to="/#historico" onClick={() => setAberto(false)} className="mt-4 rounded-lg px-3 py-2 text-sm">
+            Histórico
+          </Link>
           <button
             type="button"
-            className="btn-ghost mt-4 text-left text-sm text-[var(--sidebar-text)]"
+            className="btn-ghost mt-2 text-left text-sm text-[var(--sidebar-text)]"
             onClick={() => {
-              void limparSessaoRemota();
+              void limparSessaoRemota().catch(() => undefined);
               limpar();
             }}
           >
@@ -99,17 +124,18 @@ export function Moldura({ titulo, children }: { titulo: string; children: ReactN
               <button type="button" className="btn-sec" onClick={() => void imagem()}>
                 Imagem
               </button>
-              <button type="button" className="btn-sec" onClick={() => window.print()}>
-                PDF
+              <button type="button" className="btn-sec" disabled={gerandoPdf} onClick={() => void pdf()}>
+                {gerandoPdf ? 'Gerando…' : 'PDF'}
               </button>
             </div>
           </div>
-          <div className="mt-3">
-            <Origens />
-          </div>
-          <FiltrosAtivos />
         </header>
         <main id="painel" className="space-y-4 px-4 py-4 md:px-6">
+          <Origens />
+          <div className="no-print">
+            <SalvarAnalise />
+          </div>
+          <FiltrosAtivos />
           {periodos.map((texto) => (
             <p key={texto} className="aviso">
               {texto}

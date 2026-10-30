@@ -109,6 +109,7 @@ async function abrir() {
 
   const porta = await portaLivre();
   const base = `http://127.0.0.1:${porta}`;
+  const historico = path.join(process.env.APPDATA || path.join(app.getPath('home'), 'AppData', 'Roaming'), 'Painel do Gerente', 'historico');
   let erro = '';
   filho = spawn(process.execPath, [servidor], {
     env: {
@@ -117,6 +118,7 @@ async function abrir() {
       HOST: '127.0.0.1',
       PORT: String(porta),
       DASH_WEB_DIST: web,
+      DASH_HISTORICO: historico,
       LOG_LEVEL: 'silent',
     },
     windowsHide: true,

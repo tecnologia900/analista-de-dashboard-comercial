@@ -56,6 +56,7 @@ export interface VendedoresView {
   abaixo: VendedorVisao[];
   evolucao: { data: string; vendedor: string; valor: number }[];
   condicoes: { condicao: string; valor: number; pedidos: number; prazo: number }[];
+  prazoMedio: number | null;
   prazoPorVendedor: { vendedor: string; prazo: number; valor: number }[];
   dispersao: { vendedor: string; ticket: number; clientes: number; valor: number }[];
   casamento: { taxa: number; soRanking: string[]; soVendas: string[] } | null;
@@ -111,6 +112,7 @@ export function montarVendedores(
     .sort((a, b) => a.data.localeCompare(b.data));
 
   const condicoes = agruparCondicao(pedidosCondicao);
+  const prazoMedio = pedidosCondicao.length ? soma(pedidosCondicao.map((p) => p.prazoMedio)) / pedidosCondicao.length : null;
   const prazoPorVendedor = agruparPrazo(pedidosComparacao);
   const dispersao = equipe
     .filter((v) => v.ticketMedio != null && v.clientesPositivados != null)
@@ -153,6 +155,7 @@ export function montarVendedores(
     abaixo,
     evolucao,
     condicoes,
+    prazoMedio,
     prazoPorVendedor,
     dispersao,
     casamento,

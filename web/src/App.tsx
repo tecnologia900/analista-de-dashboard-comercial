@@ -7,6 +7,7 @@ import { Executivo } from './paginas/Executivo';
 import { Giro } from './paginas/Giro';
 import { Home } from './paginas/Home';
 import { Upload } from './paginas/Upload';
+import { Reuniao } from './paginas/Reuniao';
 import { Vendas } from './paginas/Vendas';
 import { Vendedores } from './paginas/Vendedores';
 
@@ -60,6 +61,7 @@ export function App() {
         <Route path="/vendedores" element={<Vendedores />} />
         <Route path="/vendas" element={<Vendas />} />
         <Route path="/executivo" element={<Executivo />} />
+        <Route path="/reuniao" element={<Reuniao />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
